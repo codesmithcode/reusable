@@ -8,7 +8,7 @@
 #include <stdbool.h>
 #include "console.h"
 #include "consoleIo.h"
-#include "consoleCommands.h"
+//#include "consoleCommands.h"
 
 #define MIN(X, Y)		(((X) < (Y)) ? (X) : (Y))
 #define NOT_FOUND		-1
@@ -106,10 +106,14 @@ static int32_t ConsoleCommandEndline(const char receiveBuffer[], const  uint32_t
 	return result;
 }
 
+const sConsoleCommandTable_T* commandTable;
+
 // ConsoleInit
 // Initialize the console interface and all it depends on
-void ConsoleInit(void)
+void ConsoleInit(const sConsoleCommandTable_T* commandTableRef)
 {
+	commandTable = commandTableRef;
+
 	uint32_t i;
 
 	ConsoleIoInit();
@@ -125,27 +129,38 @@ void ConsoleInit(void)
 
 }
 
+void ConsoleHandleInputInterrupt(uint8_t recieved) {
+	mReceiveBuffer[mReceivedSoFar] = recieved;
+	mReceiveBufferNeedsChecking = true;
+	mReceivedSoFar++;
+}
+
+
 // ConsoleProcess
 // Looks for new inputs, checks for endline, then runs the matching command.
 // Call ConsoleProcess from a loop, it will handle commands as they become available
 void ConsoleProcess(void)
 {
-	const sConsoleCommandTable_T* commandTable;
-	uint32_t received;
+	//const sConsoleCommandTable_T* commandTable;
 	uint32_t cmdIndex;
 	int32_t  cmdEndline;
 	int32_t  found;
 	eCommandResult_T result;
 
-	ConsoleIoReceive((uint8_t*)&(mReceiveBuffer[mReceivedSoFar]), ( CONSOLE_COMMAND_MAX_LENGTH - mReceivedSoFar ), &received);
-	if ( received > 0u || mReceiveBufferNeedsChecking)
+	// This critical section is too big.
+	// Ideally, it should cover pulling a command out
+	// of the buffer and clearing the buffer. Then command
+	// execution moves to outside.
+	//
+	DisableInterrupt();
+
+	if (mReceiveBufferNeedsChecking)
 	{
 		mReceiveBufferNeedsChecking = false;
-		mReceivedSoFar += received;
 		cmdEndline = ConsoleCommandEndline(mReceiveBuffer, mReceivedSoFar);
 		if ( cmdEndline >= 0 )  // have complete string, find command
 		{
-			commandTable = ConsoleCommandsGetTable();
+			//commandTable = ConsoleCommandsGetTable();
 			cmdIndex = 0u;
 			found = NOT_FOUND;
 			while ( ( NULL != commandTable[cmdIndex].name ) && ( NOT_FOUND == found ) )
@@ -186,6 +201,7 @@ void ConsoleProcess(void)
 			ConsoleIoSendString(CONSOLE_PROMPT);
 		}
 	}
+	RestoreInterrupt();
 }
 
 // ConsoleParamFindN

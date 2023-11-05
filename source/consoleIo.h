@@ -12,4 +12,7 @@ eConsoleError ConsoleIoInit(void);
 eConsoleError ConsoleIoReceive(uint8_t *buffer, const uint32_t bufferLength, uint32_t *readLength);
 eConsoleError ConsoleIoSendString(const char *buffer); // must be null terminated
 
+eConsoleError DisableInterrupt();
+eConsoleError RestoreInterrupt();
+
 #endif // CONSOLE_IO_H

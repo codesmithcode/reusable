@@ -11,6 +11,8 @@
 #include "console.h"
 #include "consoleIo.h"
 #include "version.h"
+#include "stm32f3xx_hal.h"
+
 
 #define IGNORE_UNUSED_VARIABLE(x)     if ( &x == &x ) {}
 
@@ -19,6 +21,9 @@ static eCommandResult_T ConsoleCommandVer(const char buffer[]);
 static eCommandResult_T ConsoleCommandHelp(const char buffer[]);
 static eCommandResult_T ConsoleCommandParamExampleInt16(const char buffer[]);
 static eCommandResult_T ConsoleCommandParamExampleHexUint16(const char buffer[]);
+static eCommandResult_T ConsoleCommandLEDToggle(const char buffer[]);
+static eCommandResult_T ConsoleCommandReboot(const char buffer[]);
+static eCommandResult_T ConsoleCommandLEDBlink(const char buffer[]);
 
 static const sConsoleCommandTable_T mConsoleCommandTable[] =
 {
@@ -27,6 +32,9 @@ static const sConsoleCommandTable_T mConsoleCommandTable[] =
     {"ver", &ConsoleCommandVer, HELP("Get the version string")},
     {"int", &ConsoleCommandParamExampleInt16, HELP("How to get a signed int16 from params list: int -321")},
     {"u16h", &ConsoleCommandParamExampleHexUint16, HELP("How to get a hex u16 from the params list: u16h aB12")},
+	{"led_toggle", &ConsoleCommandLEDToggle, HELP("Toggle a specified LED [x-y]: on 3")},
+	{"led_blink", &ConsoleCommandLEDBlink, HELP("Blink a specified LED [x-y]: blink 3")},
+	{"reboot", &ConsoleCommandReboot, HELP("Reboot the board")},
 
 	CONSOLE_COMMAND_TABLE_END // must be LAST
 };
@@ -75,6 +83,53 @@ static eCommandResult_T ConsoleCommandParamExampleInt16(const char buffer[])
 	}
 	return result;
 }
+
+static eCommandResult_T ConsoleCommandLEDToggle(const char buffer[])
+{
+	int16_t parameterInt;
+	eCommandResult_T result;
+	result = ConsoleReceiveParamInt16(buffer, 1, &parameterInt);
+	if ( COMMAND_SUCCESS == result )
+	{
+		ConsoleIoSendString("Set LED ");
+		ConsoleSendParamInt16(parameterInt);
+		ConsoleIoSendString(" on.");
+		ConsoleIoSendString(STR_ENDLINE);
+
+		// Toggle on
+	}
+	return result;
+}
+
+static eCommandResult_T ConsoleCommandReboot(const char buffer[])
+{
+	eCommandResult_T result = COMMAND_SUCCESS;
+
+    IGNORE_UNUSED_VARIABLE(buffer);
+
+	ConsoleIoSendString("Reboot....");
+	ConsoleIoSendString(STR_ENDLINE);
+	NVIC_SystemReset();
+	return result;
+}
+
+static eCommandResult_T ConsoleCommandLEDBlink(const char buffer[])
+{
+	int16_t parameterInt;
+	eCommandResult_T result;
+	result = ConsoleReceiveParamInt16(buffer, 1, &parameterInt);
+	if ( COMMAND_SUCCESS == result )
+	{
+		ConsoleIoSendString("Start LED ");
+		ConsoleSendParamInt16(parameterInt);
+		ConsoleIoSendString(" blink.");
+		ConsoleIoSendString(STR_ENDLINE);
+
+		// Toggle blink
+	}
+	return result;
+}
+
 static eCommandResult_T ConsoleCommandParamExampleHexUint16(const char buffer[])
 {
 	uint16_t parameterUint16;

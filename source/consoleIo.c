@@ -3,38 +3,24 @@
 
 #include "consoleIo.h"
 #include <stdio.h>
-
-//use the windows conio.h for kbhit, or a POSIX reproduction
-#ifdef _WIN32
-#include <conio.h>
-#else
-#include "conioCompat.h"
-#endif
-
-static int getch_noblock() {
-    if (_kbhit())
-        return _getch();
-    else
-        return EOF;
-}
+#include "stm32f3xx_hal.h"
 
 eConsoleError ConsoleIoInit(void)
 {
 	return CONSOLE_SUCCESS;
 }
-eConsoleError ConsoleIoReceive(uint8_t *buffer, const uint32_t bufferLength, uint32_t *readLength)
-{
-	uint32_t i = 0;
-	char ch;
-	
-	ch = getch_noblock();
-	while ( ( EOF != ch ) && ( i < bufferLength ) )
-	{
-		buffer[i] = (uint8_t) ch;
-		i++;
-		ch = getch_noblock();
-	}
-	*readLength = i;
+
+uint32_t old_primask;
+
+eConsoleError DisableInterrupt() {
+	old_primask = __get_PRIMASK();
+	__disable_irq();
+
+	return CONSOLE_SUCCESS;
+}
+eConsoleError RestoreInterrupt() {
+	__set_PRIMASK(old_primask);
+
 	return CONSOLE_SUCCESS;
 }
 

@@ -6,7 +6,7 @@
 #define CONSOLE_COMMANDS_H
 
 #include <stdint.h>
-#include "console.h"
+//#include "console.h"
 
 #define CONSOLE_COMMAND_MAX_COMMAND_LENGTH 10		// command only
 #define CONSOLE_COMMAND_MAX_LENGTH 256				// whole command with argument
@@ -18,6 +18,14 @@
 	#define HELP(x)	  0
 #endif // CONSOLE_COMMAND_MAX_HELP_LENGTH
 
+// called from lower down areas of the code (consoleCommands)
+typedef enum {
+	COMMAND_SUCCESS = 0u,
+	COMMAND_PARAMETER_ERROR = 0x10u,
+	COMMAND_PARAMETER_END   = 0x11u,
+	COMMAND_ERROR =0xFFu
+} eCommandResult_T;
+
 typedef eCommandResult_T(*ConsoleCommand_T)(const char buffer[]);
 
 typedef struct sConsoleCommandStruct
@@ -28,12 +36,12 @@ typedef struct sConsoleCommandStruct
 	char help[CONSOLE_COMMAND_MAX_HELP_LENGTH];
 #else
 	uint8_t junk;
-#endif // CONSOLE_COMMAND_MAX_HELP_LENGTH 
+#endif // CONSOLE_COMMAND_MAX_HELP_LENGTH
 } sConsoleCommandTable_T;
 
 #define CONSOLE_COMMAND_TABLE_END {NULL, NULL, HELP("")}
 
-const sConsoleCommandTable_T* ConsoleCommandsGetTable(void);
+//const sConsoleCommandTable_T* ConsoleCommandsGetTable(void);
 
 #endif // CONSOLE_COMMANDS_H
 
