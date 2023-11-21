@@ -5,8 +5,22 @@
 #include <stdio.h>
 #include "stm32f3xx_hal.h"
 
-eConsoleError ConsoleIoInit(void)
+uint8_t recvd_uart_data; // receive buffer
+UART_HandleTypeDef *huart;
+
+eConsoleError ConsoleIoInit(UART_HandleTypeDef *huartHandle)
 {
+	huart = huartHandle;
+	HAL_UART_Receive_IT(huart, &recvd_uart_data, 1);
+
+	return CONSOLE_SUCCESS;
+}
+
+eConsoleError ConsoleIoHandleInputInterrupt(uint8_t* data)
+{
+	*data = recvd_uart_data;
+	HAL_UART_Receive_IT(huart, &recvd_uart_data, 1);
+
 	return CONSOLE_SUCCESS;
 }
 

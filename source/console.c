@@ -116,7 +116,6 @@ void ConsoleInit(const sConsoleCommandTable_T* commandTableRef)
 
 	uint32_t i;
 
-	ConsoleIoInit();
 	ConsoleIoSendString("Welcome to the Consolinator, your gateway to testing code and hardware.");	
 	ConsoleIoSendString(STR_ENDLINE);
 	ConsoleIoSendString(CONSOLE_PROMPT);
@@ -129,7 +128,10 @@ void ConsoleInit(const sConsoleCommandTable_T* commandTableRef)
 
 }
 
-void ConsoleHandleInputInterrupt(uint8_t recieved) {
+void ConsoleHandleInputInterrupt(void) {
+	uint8_t recieved;
+	ConsoleIoHandleInputInterrupt(&recieved);
+
 	mReceiveBuffer[mReceivedSoFar] = recieved;
 	mReceiveBufferNeedsChecking = true;
 	mReceivedSoFar++;

@@ -22,7 +22,16 @@
 // Salled from higher up areas of the code (main)
 void ConsoleInit(const sConsoleCommandTable_T* commandTableRef);
 void ConsoleProcess(void); // call this in a loop
-void ConsoleHandleInputInterrupt(uint8_t recieved);
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+void ConsoleHandleInputInterrupt(void);
+
+#ifdef __cplusplus
+}
+#endif
 
 
 

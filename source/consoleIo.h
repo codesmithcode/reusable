@@ -4,13 +4,15 @@
 #define CONSOLE_IO_H
 
 #include <stdint.h>
+#include "stm32f3xx_hal.h"
 
 typedef enum {CONSOLE_SUCCESS = 0u, CONSOLE_ERROR = 1u } eConsoleError;
 
-eConsoleError ConsoleIoInit(void);
+eConsoleError ConsoleIoInit(UART_HandleTypeDef *huartHandle);
 
 eConsoleError ConsoleIoReceive(uint8_t *buffer, const uint32_t bufferLength, uint32_t *readLength);
 eConsoleError ConsoleIoSendString(const char *buffer); // must be null terminated
+eConsoleError ConsoleIoHandleInputInterrupt(uint8_t* data);
 
 eConsoleError DisableInterrupt();
 eConsoleError RestoreInterrupt();
