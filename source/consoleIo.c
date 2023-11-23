@@ -4,6 +4,8 @@
 #include "consoleIo.h"
 #include <stdio.h>
 #include "stm32f3xx_hal.h"
+#include "FreeRTOS.h"
+#include "task.h"
 
 uint8_t recvd_uart_data; // receive buffer
 UART_HandleTypeDef *huart;
@@ -27,14 +29,12 @@ eConsoleError ConsoleIoHandleInputInterrupt(uint8_t* data)
 uint32_t old_primask;
 
 eConsoleError DisableInterrupt() {
-	old_primask = __get_PRIMASK();
-	__disable_irq();
+	taskENTER_CRITICAL();
 
 	return CONSOLE_SUCCESS;
 }
 eConsoleError RestoreInterrupt() {
-	__set_PRIMASK(old_primask);
-
+	taskEXIT_CRITICAL();
 	return CONSOLE_SUCCESS;
 }
 
