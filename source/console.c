@@ -8,7 +8,6 @@
 #include <stdbool.h>
 #include "console.h"
 #include "consoleIo.h"
-//#include "consoleCommands.h"
 
 #define MIN(X, Y)		(((X) < (Y)) ? (X) : (Y))
 #define NOT_FOUND		-1
@@ -125,44 +124,32 @@ void ConsoleInit(const sConsoleCommandTable_T* commandTableRef)
 	{
 		mReceiveBuffer[i] = NULL_CHAR;
 	}
-
 }
 
 void ConsoleHandleInputInterrupt(void) {
-	uint8_t recieved;
-	ConsoleIoHandleInputInterrupt(&recieved);
-
-	mReceiveBuffer[mReceivedSoFar] = recieved;
-	mReceiveBufferNeedsChecking = true;
-	mReceivedSoFar++;
+	ConsoleIoHandleInputInterrupt();
 }
-
 
 // ConsoleProcess
 // Looks for new inputs, checks for endline, then runs the matching command.
 // Call ConsoleProcess from a loop, it will handle commands as they become available
 void ConsoleProcess(void)
 {
-	//const sConsoleCommandTable_T* commandTable;
 	uint32_t cmdIndex;
 	int32_t  cmdEndline;
 	int32_t  found;
+	uint32_t received;
 	eCommandResult_T result;
 
-	// This critical section is too big.
-	// Ideally, it should cover pulling a command out
-	// of the buffer and clearing the buffer. Then command
-	// execution moves to outside.
-	//
-	DisableInterrupt();
+	ConsoleIoReceive((uint8_t*)&(mReceiveBuffer[mReceivedSoFar]), &received, 100);
 
-	if (mReceiveBufferNeedsChecking)
+	if (received > 0 || mReceiveBufferNeedsChecking)
 	{
 		mReceiveBufferNeedsChecking = false;
+		mReceivedSoFar+=received;
 		cmdEndline = ConsoleCommandEndline(mReceiveBuffer, mReceivedSoFar);
 		if ( cmdEndline >= 0 )  // have complete string, find command
 		{
-			//commandTable = ConsoleCommandsGetTable();
 			cmdIndex = 0u;
 			found = NOT_FOUND;
 			while ( ( NULL != commandTable[cmdIndex].name ) && ( NOT_FOUND == found ) )
@@ -203,7 +190,6 @@ void ConsoleProcess(void)
 			ConsoleIoSendString(CONSOLE_PROMPT);
 		}
 	}
-	RestoreInterrupt();
 }
 
 // ConsoleParamFindN

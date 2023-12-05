@@ -19,14 +19,16 @@
 
 
 
-// Salled from higher up areas of the code (main)
-void ConsoleInit(const sConsoleCommandTable_T* commandTableRef);
-void ConsoleProcess(void); // call this in a loop
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+// Salled from higher up areas of the code (main)
+void ConsoleInit(const sConsoleCommandTable_T* commandTableRef);
+
+void ConsoleProcess(void); // call this in a loop
+
+// This should be removed + just use the consoleIO function
 void ConsoleHandleInputInterrupt(void);
 
 #ifdef __cplusplus

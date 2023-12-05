@@ -6,41 +6,44 @@
 #include "stm32f3xx_hal.h"
 #include "FreeRTOS.h"
 #include "task.h"
+#include "ThreadLocalUartOutputStream.h"
 
-uint8_t recvd_uart_data; // receive buffer
-UART_HandleTypeDef *huart;
+static uint8_t recvd_uart_data; // receive buffer
+static UART_HandleTypeDef *huart = NULL;
+static StreamBufferHandle_t *stream = NULL;
 
-eConsoleError ConsoleIoInit(UART_HandleTypeDef *huartHandle)
+eConsoleError ConsoleIoInit(UART_HandleTypeDef *huartHandle, StreamBufferHandle_t *streamHandle)
 {
 	huart = huartHandle;
+	stream = streamHandle;
 	HAL_UART_Receive_IT(huart, &recvd_uart_data, 1);
 
 	return CONSOLE_SUCCESS;
 }
 
-eConsoleError ConsoleIoHandleInputInterrupt(uint8_t* data)
+eConsoleError ConsoleIoHandleInputInterrupt()
 {
-	*data = recvd_uart_data;
+	xStreamBufferSendFromISR( *stream, &recvd_uart_data, sizeof(uint8_t), NULL);
 	HAL_UART_Receive_IT(huart, &recvd_uart_data, 1);
 
 	return CONSOLE_SUCCESS;
 }
 
-uint32_t old_primask;
+eConsoleError ConsoleIoReceive(uint8_t* character, uint32_t *readLength, size_t millisToWait)
+{
 
-eConsoleError DisableInterrupt() {
-	taskENTER_CRITICAL();
-
-	return CONSOLE_SUCCESS;
-}
-eConsoleError RestoreInterrupt() {
-	taskEXIT_CRITICAL();
+	*readLength = xStreamBufferReceive( *stream,
+	                            character,
+								sizeof(uint8_t),
+								 pdMS_TO_TICKS(millisToWait) );
 	return CONSOLE_SUCCESS;
 }
 
 eConsoleError ConsoleIoSendString(const char *buffer)
 {
-	printf("%s", buffer);
+	printToThreadLocalUartOutputStream(buffer);
+//	output.print(buffer);
+//	printf("%s", buffer);
 	return CONSOLE_SUCCESS;
 }
 
